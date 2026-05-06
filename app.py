@@ -68,6 +68,7 @@ for sp in db:
                 <p style="margin-top:10px; color: #8a9a7a;">{sp['description']}</p>
             </div>
             """, unsafe_allow_html=True)
+            
             # Inside the expander, replace the old form
             with st.form(key=f"note_form_{sp['id']}"):
             	new_note = st.text_area("Add Field Observation", placeholder="e.g. Observed flowering near riverbank...")
@@ -79,6 +80,7 @@ for sp in db:
             			st.balloons()
             		else:
             			st.warning(message)
+
 def append_field_note(scientific_name, note_text, webhook_url):
     """
     Sends a field note to the Google Apps Script web app.
