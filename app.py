@@ -1,6 +1,81 @@
 import requests
+import streamlit as st
 import json
 import os
+
+# --- CONFIG ---
+st.set_page_config(page_title="Bio-Stack | Wild West", page_icon="🌿", layout="wide")
+
+# --- CLAUDE'S TROPICAL CSS ---
+st.markdown(f"""
+    <style>
+    .stApp {{
+        background-color: #0f1a0e;
+        color: #d4c9a8;
+        font-family: 'Georgia', serif;
+    }}
+    .species-card {{
+        background: #131d12;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #2a3a28;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }}
+    .sci-name {{ color: #c8d8a8; font-style: italic; font-size: 1.2rem; font-weight: bold; }}
+    .local-name {{ color: #7a9a6a; font-size: 0.9rem; }}
+    .status-badge {{
+        padding: 2px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        background: #1e2e1c;
+        color: #a8c878;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- UTILITIES ---
+def load_db():
+    if os.path.exists("data/species_db.json"):
+        with open("data/species_db.json", "r") as f:
+            return json.load(f)
+    return []
+
+db = load_db()
+
+# --- HEADER ---
+st.title("🌿 BIO-STACK")
+st.caption("Wild West Sandbox · Taxonomy Engine v1.0")
+
+search = st.text_input("🔍 Search specimen by name, habitat, or Mandarin...", "")
+
+# --- CARD RENDERER ---
+for sp in db:
+    # Basic Filter Logic
+    if search.lower() in sp['scientific'].lower() or search.lower() in sp['local'].lower():
+        with st.container():
+            # Constructing the Card using Claude's visual hierarchy
+            st.markdown(f"""
+            <div class="species-card">
+                <span class="sci-name">{sp['emoji']} {sp['scientific']}</span>
+                <div class="local-name">"{sp['local']}" • {sp['mandarin']}</div>
+                <hr style="border: 0.5px solid #2a3a28;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>🌍 {sp['habitat']}</span>
+                    <span class="status-badge">{sp['status']}</span>
+                </div>
+                <p style="margin-top:10px; color: #8a9a7a;">{sp['description']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Use native Streamlit for the interactive parts
+            with st.expander("📋 Full Taxonomy & Field Notes"):
+                st.write(f"**Field Observation:** *{sp['field_note']}*")
+                st.table(sp['taxonomy'])
+                if st.button(f"Add Note for {sp['scientific']}", key=sp['id']):
+                    st.info("Module Beta: Google Sheets Bridge integration pending...")
+
 
 def append_field_note(scientific_name, note_text, webhook_url):
     """
