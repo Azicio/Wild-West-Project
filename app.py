@@ -69,13 +69,17 @@ for sp in db:
             </div>
             """, unsafe_allow_html=True)
             
-            # Use native Streamlit for the interactive parts
-            with st.expander("📋 Full Taxonomy & Field Notes"):
-                st.write(f"**Field Observation:** *{sp['field_note']}*")
-                st.table(sp['taxonomy'])
-                if st.button(f"Add Note for {sp['scientific']}", key=sp['id']):
-                    st.info("Module Beta: Google Sheets Bridge integration pending...")
-
+			# Inside the expander, replace the old form
+			with st.form(key=f"note_form_{sp['id']}"):
+			    new_note = st.text_area("Add Field Observation", placeholder="e.g. Observed flowering near riverbank...")
+			    submitted = st.form_submit_button("📤 Save to Google Sheet")
+			    if submitted and new_note:
+			        success, message = append_field_note(sp["scientific"], new_note, st.secrets["APPS_SCRIPT_URL"])
+			        if success:
+			            st.success(message)
+			            st.balloons()
+			        else:
+			            st.warning(message)
 
 def append_field_note(scientific_name, note_text, webhook_url):
     """
