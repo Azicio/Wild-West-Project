@@ -79,8 +79,8 @@ for sp in db:
             			if success:
             				st.success(message)
             				st.balloons()
-            		else:
-       	     			st.warning(message)
+            			else:
+            				st.warning(message)
 
 def append_field_note(scientific_name, note_text, webhook_url):
     """
