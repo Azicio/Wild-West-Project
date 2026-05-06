@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "scientific": "Musa paradisiaca",
+    "local": "Pisang",
+    "mandarin": "香蕉 (Xiāngjiāo)",
+    "taxonomy": {
+        "Kingdom": "Plantae",
+        "Family": "Musaceae",
+        "Genus": "Musa",
+        "Species": "M. paradisiaca"
+    },
+    "habitat": "Lowland tropics, riverbanks",
+    "height": "2 – 9 m",
+    "status": "Cultivated · Stable",
+    "status_type": "stable",
+    "description": "Commonly found near riverbanks and village edges across Southeast Sulawesi. A keystone cultivated species in local agroforestry systems.",
+    "field_note": "Observed dense groves near Ambon estuary, Week 2 Mei 2026.",
+    "emoji": "🍌",
+    "color": "#5a8a3c"
+  }
+]
