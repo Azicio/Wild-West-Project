@@ -6,6 +6,9 @@
     "mandarin": "香蕉 (Xiāngjiāo)",
     "taxonomy": {
         "Kingdom": "Plantae",
+        "Divisi": "Magnoliophyta",
+        "Kelas": "Liliopsida",
+        "Ordo": "Zingiberales",
         "Family": "Musaceae",
         "Genus": "Musa",
         "Species": "M. paradisiaca"
