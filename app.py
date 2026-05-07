@@ -1,76 +1,93 @@
-import requests
 import streamlit as st
 import json
 import os
-import datetime
+import requests
 
-# --- CONFIG ---
-st.set_page_config(page_title="Bio-Stack | Wild West", page_icon="🌿", layout="wide")
+# --- [NEW] SYNC LOGIC FOR OFFLINE QUEUE ---
+def sync_offline_queue():
+    queue_path = "data/offline_queue.json"
+    if not os.path.exists(queue_path):
+        st.info("No pending notes to sync.")
+        return
 
-# --- CLAUDE'S TROPICAL CSS (removed the f-string) ---
+    with open(queue_path, "r") as f:
+        queue = json.load(f)
+
+    if not queue:
+        st.info("Queue is empty.")
+        return
+
+    success_count = 0
+    url = st.secrets["APPS_SCRIPT_URL"]
+    
+    st.write(f"🔄 Syncing {len(queue)} notes...")
+    
+    remaining_queue = []
+    for item in queue:
+        try:
+            resp = requests.post(url, json=item, timeout=10)
+            if resp.status_code == 200:
+                success_count += 1
+            else:
+                remaining_queue.append(item)
+        except:
+            remaining_queue.append(item)
+
+    # Update the file with whatever failed to sync
+    with open(queue_path, "w") as f:
+        json.dump(remaining_queue, f)
+
+    if success_count > 0:
+        st.success(f"Successfully synced {success_count} notes to Google Sheets!")
+        if not remaining_queue:
+            os.remove(queue_path) # Clean up if all done
+    else:
+        st.error("Sync failed. Check connection.")
+
+# --- DYNAMIC CSS (Claude's Enhanced Palette) ---
 st.markdown("""
     <style>
-    .stApp {
-        background-color: #0f1a0e;
-        color: #d4c9a8;
-        font-family: 'Georgia', serif;
-    }
+    .stApp { background-color: #0f1a0e; color: #d4c9a8; font-family: 'Georgia', serif; }
+    
+    /* Dynamic Card Border based on status classes we will inject */
     .species-card {
         background: #131d12;
         border-radius: 12px;
         padding: 20px;
-        border: 1px solid #2a3a28;
         margin-bottom: 20px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        border-left: 5px solid #5a8a3c; /* Default Green */
     }
-    .sci-name { color: #c8d8a8; font-style: italic; font-size: 1.2rem; font-weight: bold; }
-    .local-name { color: #7a9a6a; font-size: 0.9rem; }
-    .status-badge {
-        padding: 2px 10px;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: bold;
-        background: #1e2e1c;
-        color: #a8c878;
-    }
+    .status-threatened { border-left: 5px solid #ed8936 !important; }
+    .status-stable { border-left: 5px solid #5a8a3c !important; }
+    
+    .sci-name { color: #c8d8a8; font-style: italic; font-size: 1.3rem; font-weight: bold; }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# --- GOOGLE SHEETS BRIDGE ---
-def append_field_note(scientific_name, note_text, webhook_url):
-    safe_note = note_text.strip()
-    safe_note = safe_note.replace("=", "﹦").replace("+", "＋").replace("@", "＠")
-    safe_name = scientific_name.strip()
+# --- SIDEBAR: ADMIN CONTROLS ---
+with st.sidebar:
+    st.header("⚙️ Operator Tools")
+    if st.button("🔄 Sync Offline Queue"):
+        sync_offline_queue()
+
+# --- MAIN APP LOOP (Modified for Dynamic Status) ---
+# ... (Assuming db is loaded) ...
+for sp in db:
+    status_class = "status-threatened" if sp.get("status_type") == "threatened" else "status-stable"
     
-    payload = {
-        "scientific": safe_name,
-        "note": safe_note
-    }
-    
-    try:
-        response = requests.post(webhook_url, json=payload, timeout=10)
-        if response.status_code == 200:
-            return True, "Note saved successfully."
-        else:
-            return False, f"Error: {response.status_code}"
-    except requests.exceptions.RequestException as e:
-        queue_path = "data/offline_queue.json"
-        queue_entry = {
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "scientific": safe_name,
-            "note": safe_note
-        }
-        queue = []
-        if os.path.exists(queue_path):
-            with open(queue_path, "r") as f:
-                try:
-                    queue = json.load(f)
-                except:
-                    pass
-        queue.append(queue_entry)
-        with open(queue_path, "w") as f:
-            json.dump(queue, f, indent=2)
-        return False, f"Offline – note saved locally. ({str(e)[:40]}...)"
+    st.markdown(f"""
+        <div class="species-card {status_class}">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="sci-name">{sp['emoji']} {sp['scientific']}</span>
+                <img src="{sp.get('thumbnail_url', '')}" width="60" style="border-radius: 8px;">
+            </div>
+            <div style="color: #7a9a6a; font-size: 0.9rem;">"{sp['local']}" • {sp['mandarin']}</div>
+            <hr style="border: 0.5px solid #2a3a28;">
+            <p style="color: #8a9a7a;">{sp['description']}</p>
+        </div>
+    """, unsafe_allow_html=True)
+    # ... (Rest of the expander logic) ...
 
 # --- UTILITIES ---
 def load_db():
