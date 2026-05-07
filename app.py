@@ -132,4 +132,9 @@ for sp in db:
                             st.success(message)
                             st.balloons()
                         else:
-                            st.warning(message)
+                            st.warning(message) 
+
+if st.button("Test POST"):
+    import requests, st.secrets
+    resp = requests.post(st.secrets["APPS_SCRIPT_URL"], json={"scientific": "Test", "note": "Hello"})
+    st.write(resp.status_code, resp.text)
