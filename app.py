@@ -70,11 +70,6 @@ with st.sidebar:
     st.header("⚙️ Operator Tools")
     if st.button("🔄 Sync Offline Queue"):
         sync_offline_queue()
-
-# --- MAIN APP LOOP (Modified for Dynamic Status) ---
-# ... (Assuming db is loaded) ...
-for sp in db:
-    status_class = "status-threatened" if sp.get("status_type") == "threatened" else "status-stable"
     
     st.markdown(f"""
         <div class="species-card {status_class}">
@@ -97,6 +92,11 @@ def load_db():
     return []
 
 db = load_db()
+
+# --- MAIN APP LOOP (Modified for Dynamic Status) ---
+# ... (Assuming db is loaded) ...
+for sp in db:
+    status_class = "status-threatened" if sp.get("status_type") == "threatened" else "status-stable"
 
 # --- HEADER ---
 st.title("🌿 BIO-STACK")
