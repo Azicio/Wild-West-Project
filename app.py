@@ -7,7 +7,7 @@ import datetime
 # --- CONFIG ---
 st.set_page_config(page_title="Bio-Stack | Wild West", page_icon="🌿", layout="wide")
 
-# --- CLAUDE'S TROPICAL CSS ---
+# --- CLAUDE'S TROPICAL CSS (removed the f-string) ---
 st.markdown("""
     <style>
     .stApp {
@@ -36,13 +36,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- GOOGLE SHEETS BRIDGE (must be defined before use) ---
+# --- GOOGLE SHEETS BRIDGE ---
 def append_field_note(scientific_name, note_text, webhook_url):
-    """
-    Sends a field note to the Google Apps Script web app.
-    Falls back to a local offline queue if the request fails.
-    """
-    # Sanitise injection characters
     safe_note = note_text.strip()
     safe_note = safe_note.replace("=", "﹦").replace("+", "＋").replace("@", "＠")
     safe_name = scientific_name.strip()
@@ -59,7 +54,6 @@ def append_field_note(scientific_name, note_text, webhook_url):
         else:
             return False, f"Error: {response.status_code}"
     except requests.exceptions.RequestException as e:
-        # Offline fallback – save to local queue
         queue_path = "data/offline_queue.json"
         queue_entry = {
             "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -91,16 +85,17 @@ db = load_db()
 st.title("🌿 BIO-STACK")
 st.caption("Wild West Sandbox · Taxonomy Engine v1.0")
 
+# --- SECRETS CHECK ---
+if "APPS_SCRIPT_URL" not in st.secrets:
+    st.error("Missing `APPS_SCRIPT_URL` secret. Add it to your Streamlit Cloud secrets or `.streamlit/secrets.toml`.")
+    st.stop()
+
 search = st.text_input("🔍 Search specimen by name, habitat, or Mandarin...", "")
-if st.button("Test POST"):
-    import requests, st.secrets
-    resp = requests.post(st.secrets["APPS_SCRIPT_URL"], json={"scientific": "Test", "note": "Hello"})
-    st.write(resp.status_code, resp.text)
+
 # --- CARD RENDERER ---
 for sp in db:
     if search.lower() in sp['scientific'].lower() or search.lower() in sp['local'].lower():
         with st.container():
-            # Card structure (Claude's design)
             st.markdown(f"""
             <div class="species-card">
                 <span class="sci-name">{sp['emoji']} {sp['scientific']}</span>
@@ -114,9 +109,7 @@ for sp in db:
             </div>
             """, unsafe_allow_html=True)
             
-            # Taxonomy expander with field note form
             with st.expander("📋 Full Taxonomy & Field Notes"):
-                # Show taxonomy table (if your JSON has the taxonomy key)
                 if "taxonomy" in sp:
                     st.table(sp["taxonomy"])
                 else:
