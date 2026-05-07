@@ -92,7 +92,10 @@ st.title("🌿 BIO-STACK")
 st.caption("Wild West Sandbox · Taxonomy Engine v1.0")
 
 search = st.text_input("🔍 Search specimen by name, habitat, or Mandarin...", "")
-
+if st.button("Test POST"):
+    import requests, st.secrets
+    resp = requests.post(st.secrets["APPS_SCRIPT_URL"], json={"scientific": "Test", "note": "Hello"})
+    st.write(resp.status_code, resp.text)
 # --- CARD RENDERER ---
 for sp in db:
     if search.lower() in sp['scientific'].lower() or search.lower() in sp['local'].lower():
@@ -132,9 +135,4 @@ for sp in db:
                             st.success(message)
                             st.balloons()
                         else:
-                            st.warning(message) 
-
-if st.button("Test POST"):
-    import requests, st.secrets
-    resp = requests.post(st.secrets["APPS_SCRIPT_URL"], json={"scientific": "Test", "note": "Hello"})
-    st.write(resp.status_code, resp.text)
+                            st.warning(message)
