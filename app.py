@@ -58,8 +58,8 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         border-left: 5px solid #5a8a3c; /* Default Green */
     }
-    .status-threatened { border-left: 5px solid #ed8936 !important; }
-    .status-stable { border-left: 5px solid #5a8a3c !important; }
+    .status-Endangered { border-left: 5px solid #ed8936 !important; }
+    .status-Least_Concern { border-left: 5px solid #5a8a3c !important; }
     
     .sci-name { color: #c8d8a8; font-style: italic; font-size: 1.3rem; font-weight: bold; }
     </style>
